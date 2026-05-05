@@ -1,0 +1,53 @@
+{
+  "pluginAlias": "homebridge-plex-metadata",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "plexHost": {
+        "title": "Plex Host",
+        "type": "string",
+        "description": "Plex host and port, e.g. 192.168.1.10:32400",
+        "format": "hostname",
+        "required": true
+      },
+      "plexToken": {
+        "title": "Plex Token",
+        "type": "string",
+        "description": "Plex authentication token",
+        "required": true
+      },
+      "players": {
+        "title": "Players",
+        "type": "array",
+        "items": {
+            "title": "Player info",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Player name",
+                    "type": "string"      
+                },
+                "uuid": {
+                    "title": "Player name or uuid",
+                    "type": "string"      
+                }
+            }
+        }
+      },
+     "enableWebhooks": {
+        "title": "Enable Webhooks",
+        "type": "boolean"
+      },
+      "plexWebhookPort": {
+        "title": "Plex Webhook Port",
+        "type": "integer",
+        "default": 32500,
+        "condition": {
+            "functionBody": "return model.enableWebhooks === true;"
+        }
+      }
+    }
+  }
+}

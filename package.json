@@ -1,0 +1,34 @@
+{
+  "name": "homebridge-plex-metadata",
+  "version": "0.5.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "scripts": {
+    "build": "rm -rf ./dist && tsc",
+    "lint": "eslint . --max-warnings=0",
+    "prepublishOnly": "yarn lint && yarn build",
+    "watch": "yarn build && yarn link && nodemon"
+  },
+  "engines": {
+    "homebridge": "^1.8.0 || ^2.0.0-beta.0",
+    "node": "^22 || ^24"
+  },
+  "dependencies": {
+    "async-busboy": "^1.1.0",
+    "homebridge-lib": "^7.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/async-busboy": "^1.1.4",
+    "@types/node": "^22.0.0",
+    "eslint": "^10.0.0",
+    "homebridge": "^2.0.0-beta.55",
+    "nodemon": "^3.1.11",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.0"
+  }
+}
