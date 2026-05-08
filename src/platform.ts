@@ -102,14 +102,9 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
     this.log.info('Discovering devices');
     this.discoveredCacheUUIDs.length = 0;
   
-    const plexHost = typeof this.config.plexHost === 'string' ? this.config.plexHost : undefined;
-    const plexToken = typeof this.config.plexToken === 'string' ? this.config.plexToken : undefined;
+    const { plexHost: domain, plexPort, plexToken } = this.config;
+    const plexHost = `http://${domain}:${plexPort}`;
     const players = typeof this.config.players === 'object' ? this.config.players : [];
-    
-    if (!plexHost || !plexToken) {
-      this.log.warn('Missing plexHost or plexToken in config');
-      return;
-    }
 
     for (const { name, uuid } of players) {
       const playbackContext: AccessoryContext = { plexHost, plexToken, playerUuid: uuid };

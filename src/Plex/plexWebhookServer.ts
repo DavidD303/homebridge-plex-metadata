@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
+import { networkInterfaces } from 'node:os';
 import asyncBusboy from 'async-busboy';
 import type { PlaybackState, PlexWebhookPayload } from './plexTypes.js';
 
@@ -39,7 +40,11 @@ export class PlexWebhookServer extends EventEmitter {
     });
 
     this.server.listen(this.options.port, () => {
-      this.options.log.info(`Plex webhook listener ready at http://0.0.0.0:${this.options.port}${this.path}`);
+      const boundAddress = this.server?.address();
+      const host = typeof boundAddress === 'object' && boundAddress
+        ? this.resolveAdvertisedHost(boundAddress.address)
+        : '127.0.0.1';
+      this.options.log.info(`Plex webhook listener ready at http://${host}:${this.options.port}${this.path}`);
     });
   }
 
@@ -98,5 +103,26 @@ export class PlexWebhookServer extends EventEmitter {
     if (payload.event === 'media.stop') {
       return 'stopped'; 
     }
+  }
+
+  private resolveAdvertisedHost(boundAddress: string): string {
+    if (boundAddress !== '0.0.0.0' && boundAddress !== '::') {
+      return boundAddress;
+    }
+
+    const interfaces = networkInterfaces();
+    for (const addresses of Object.values(interfaces)) {
+      if (!addresses) {
+        continue;
+      }
+      const reachableIpv4 = addresses.find((address) => {
+        return address.family === 'IPv4' && !address.internal;
+      });
+      if (reachableIpv4) {
+        return reachableIpv4.address;
+      }
+    }
+
+    return '127.0.0.1';
   }
 }
