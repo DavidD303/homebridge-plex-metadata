@@ -45,7 +45,7 @@ export class PlaybackSensorAccessory {
       throw new Error('Plex polling fallback disabled: missing plexHost or plexToken in accessory context.');
     }
 
-    this.plexApiClient = new PlexApiClient(plexHost, plexToken);
+    this.plexApiClient = new PlexApiClient(plexHost, plexToken, this.log);
     this.startPollingFallback();
     this.log.info('Registered playback accessory:', this.accessory.displayName);
   }
@@ -100,7 +100,6 @@ export class PlaybackSensorAccessory {
         );
       }
  
-      
       const session = sessions.MediaContainer.Metadata?.find((metadata) => {
         return metadata.Player?.machineIdentifier === this.accessory.context.playerUuid;
       });

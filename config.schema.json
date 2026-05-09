@@ -37,7 +37,7 @@
                       "type": "string"      
                   },
                   "uuid": {
-                      "title": "Player Name or UUID",
+                      "title": "Player UUID",
                       "type": "string"      
                   }
               }

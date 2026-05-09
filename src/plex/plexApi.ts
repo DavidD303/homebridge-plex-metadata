@@ -5,6 +5,10 @@ import type {
   PlexSession,
 } from './plexTypes.js';
 
+type Logger = {
+  error: (message: string, ...parameters: unknown[]) => void;
+};
+
 /**
  * Minimal Plex API client scaffold.
  * Pass a Plex host (e.g. http://192.168.1.10:32400) and token in constructor.
@@ -12,8 +16,9 @@ import type {
 export class PlexApiClient {
   private readonly baseUrl: string;
   private readonly token: string;
+  private readonly log: Logger;
 
-  constructor(host: string, token: string) {
+  constructor(host: string, token: string, log?: Logger) {
     if (!host.trim()) {
       throw new Error('Plex host is required.');
     }
@@ -23,6 +28,7 @@ export class PlexApiClient {
 
     this.baseUrl = this.normalizeHost(host);
     this.token = token.trim();
+    this.log = log ?? { error: console.error };
   }
 
   /**
@@ -47,13 +53,13 @@ export class PlexApiClient {
 
     if (!response.ok) {
       const message = await response.text();
-      throw new Error(`Plex request failed (${response.status}): ${message}`);
+      this.log.error(`Plex request failed (${response.status}): ${message}`);
     }
 
     const contentType = response.headers.get('content-type') ?? '';
     if (!contentType.includes('application/json')) {
       const body = await response.text();
-      throw new Error(`Expected JSON from Plex API, received: ${contentType || 'unknown'} (${body.slice(0, 200)})`);
+      this.log.error(`Expected JSON from Plex API, received: ${contentType || 'unknown'} (${body.slice(0, 200)})`);
     }
 
     return await response.json() as T;

@@ -4,6 +4,23 @@
 
 Add sensors to monitor playback state while exposing rich metadata on the currently playing media
 
+## Why this plugin exists
+
+This plugin is built for people who want more than "is something playing?" from Plex in HomeKit. It exposes playback metadata as Homebridge characteristics so you can trigger automations based on what is actually on screen, not just whether a player is active.
+
+A practical example is projector control. If a movie starts in `21:9`, you can use that metadata value to trigger a HomeKit automation that changes your projector lens memory/profile to match.
+
+The occupancy sensor is still useful for simple "media started/stopped" flows, but the core value of this plugin is metadata-driven automations for advanced setups.
+
+## How it works
+
+This plugin leverages both webhooks (optional) and the /sessions API. Webhooks provide realtime updates when playback status changes. The /sessions API provides richer metadata, exposed as custom characteristics, which currently include:
+
+- Aspect Ratio
+- Resolution
+- Audio Codec
+- Video Codec
+
 ## Setup
 
 1. Set your Plex server connection details:
@@ -17,7 +34,7 @@ Add sensors to monitor playback state while exposing rich metadata on the curren
 3. Configure players that should get an occupancy sensor:
    - Add each player under `players` with:
      - `name`: the Homebridge accessory name you want to display
-     - `uuid`: player identifier value (machine identifier or player title)
+     - `uuid`: player identifier value (machine identifier)
 
 4. Get player identifiers from Homebridge logs while media is playing:
 
