@@ -1,6 +1,6 @@
 # Plex Metadata plugin for Homebridge
 
-[![CI](https://github.com/<owner>/<repo>/actions/workflows/ci.yml/badge.svg)](https://github.com/<owner>/<repo>/actions/workflows/ci.yml)
+[![CI](https://github.com/davidmuzi/homebridge-plex-metadata/actions/workflows/ci.yml/badge.svg)](https://github.com/davidmuzi/homebridge-plex-metadata/actions/workflows/ci.yml)
 
 Add sensors to monitor playback state while exposing rich metadata on the currently playing media
 
