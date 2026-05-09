@@ -1,6 +1,7 @@
 declare module 'homebridge-lib/CustomHomeKitTypes' {
-    import type { WithUUID, API, Characteristic, Formats, Perms, Units } from 'homebridge';
+    import type { WithUUID, API, Characteristic, Formats, Perms, Service, Units } from 'homebridge';
     type CharacteristicConstructor = WithUUID<new () => Characteristic>;
+    type ServiceConstructor = WithUUID<typeof Service>;
   
     export class CustomHomeKitTypes {
       constructor(homebridge: API);
@@ -10,7 +11,7 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
       get Perms(): typeof Perms;
       get Units(): typeof Units;
       get Characteristics(): Record<string, CharacteristicConstructor>;
-      get Services(): Record<string, unknown>;
+      get Services(): Record<string, ServiceConstructor>;
   
       createCharacteristicClass(
         key: string,
@@ -18,5 +19,12 @@ declare module 'homebridge-lib/CustomHomeKitTypes' {
         props: object,
         displayName?: string,
       ): CharacteristicConstructor;
+
+      createServiceClass(
+        key: string,
+        uuid: string,
+        characteristics: CharacteristicConstructor[],
+        optionalCharacteristics?: CharacteristicConstructor[],
+      ): ServiceConstructor;
     }
   }

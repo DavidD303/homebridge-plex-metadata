@@ -1,4 +1,4 @@
-import type { Characteristic, CharacteristicValue, PlatformAccessory, Service, Logging } from 'homebridge';
+import type { Characteristic, CharacteristicValue, PlatformAccessory, Service, Logging, WithUUID } from 'homebridge';
 import { PlexApiClient } from './plex/plexApi.js';
 import type { PlaybackState } from './plex/plexTypes.js';
 import type { PlexHomeKitTypes } from './plex/customCharacterists.js';
@@ -11,6 +11,7 @@ export type AccessoryContext = {
 
 export class PlaybackSensorAccessory {
   private service: Service;
+  private metadataService: Service;
   private occupancyDetected = false;
   private lastWebhookEventAt = 0;
   private readonly fallbackPollIntervalMs = 30_000;
@@ -26,6 +27,11 @@ export class PlaybackSensorAccessory {
   ) {
     this.service = accessory.getService(this.serviceType.OccupancySensor) ||
       accessory.addService(this.serviceType.OccupancySensor);
+    const PlaybackMetadata = this.plexTypes.Services.PlaybackMetadata as WithUUID<typeof Service>;
+    
+    const metadataSubtype = `plex-metadata-${this.accessory.context.playerUuid}`;
+    this.metadataService = accessory.getServiceById(PlaybackMetadata, metadataSubtype) ||
+      accessory.addService(PlaybackMetadata, `${this.accessory.displayName} Playback Metadata`, metadataSubtype);
 
     this.accessory.getService(this.serviceType.AccessoryInformation)!
       .setCharacteristic(this.characteristicType.Name, this.accessory.displayName)
@@ -115,21 +121,21 @@ export class PlaybackSensorAccessory {
       const aspectRatioString = this.aspectRatioToHomeKit(aspectRatio);
       if (aspectRatioString) {
         this.log.debug('Aspect ratio:', aspectRatioString);
-        this.service.getCharacteristic(AspectRatio).updateValue(aspectRatioString);
+        this.metadataService.getCharacteristic(AspectRatio).updateValue(aspectRatioString);
       }
 
       // Audio codec
       const audioCodec = Media?.audioCodec;
-      this.service.getCharacteristic(AudioCodec).updateValue(audioCodec);
+      this.metadataService.getCharacteristic(AudioCodec).updateValue(audioCodec);
 
       // Video resolution
       const resolution = Media?.videoResolution;
       this.log.debug('Resolution:', resolution);
-      this.service.getCharacteristic(Resolution).updateValue(resolution);
+      this.metadataService.getCharacteristic(Resolution).updateValue(resolution);
 
       // Video codec
       const videoCodec = Media?.videoCodec;
-      this.service.getCharacteristic(VideoCodec).updateValue(videoCodec);
+      this.metadataService.getCharacteristic(VideoCodec).updateValue(videoCodec);
 
 
     } catch (error) {

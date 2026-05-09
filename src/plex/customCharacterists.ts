@@ -24,5 +24,12 @@ export class PlexHomeKitTypes extends CustomHomeKitTypes {
       format: this.Formats.STRING,
       perms: [this.Perms.NOTIFY, this.Perms.PAIRED_READ],
     });
+
+    this.createServiceClass('PlaybackMetadata', '0CD6DDC3-813E-4B16-BDE9-587A13EB358A', [
+      this.Characteristics.VideoCodec,
+      this.Characteristics.AspectRatio,
+      this.Characteristics.Resolution,
+      this.Characteristics.AudioCodec,
+    ]);
   }
 }
