@@ -2,16 +2,15 @@ import type { API, Characteristic, DynamicPlatformPlugin, Logging, PlatformAcces
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { PlaybackSensorAccessory, AccessoryContext } from './playbackSensorAccessory.js';
-import { PlexWebhookServer } from './plex/plexWebhookServer.js';
-import type { PlaybackState } from './plex/plexTypes.js';
 import { PlexHomeKitTypes } from './plex/customCharacterists.js';
+import { PlexService } from './plex/plexService.js';
 
 export class PlexSensorPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service;
   public readonly Characteristic: typeof Characteristic;
   public readonly plexTypes: PlexHomeKitTypes;
-  private plexWebhookServer?: PlexWebhookServer;
-  private readonly playbackAccessories = new Set<PlaybackSensorAccessory>();
+  private plexService?: PlexService;
+  private readonly playbackAccessories = new Map<string, PlaybackSensorAccessory>();
 
   // this is used to track restored cached accessories
   public readonly accessories: Map<string, PlatformAccessory> = new Map();
@@ -34,18 +33,15 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
     // to start discovery of new accessories.
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
+      this.initializePlexService();
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
-
-      // Enable webhooks if enabled in config
-      if (this.config.enableWebhooks) {
-        const port = Number(this.config.plexWebhookPort);
-        this.startPlexWebhookListener(port);
-      }
+      this.plexService?.start();
     });
 
     this.api.on('shutdown', () => {
-      this.stopPlexWebhookListener();
+      this.plexService?.stop();
+      this.plexService = undefined;
     });
 
     //process.once('SIGINT', () => void this.stopPlexWebhookListener());
@@ -67,35 +63,23 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
     this.accessories.set(accessory.UUID, accessory);
   }
 
-  private startPlexWebhookListener(port: number = 32500) {
-    if (this.plexWebhookServer) {
+  private initializePlexService() {
+    if (this.plexService) {
       return;
     }
-
-    this.plexWebhookServer = new PlexWebhookServer({
-      port,
+    const { plexHost: domain, plexPort, plexToken } = this.config;
+    if (typeof domain !== 'string' || typeof plexToken !== 'string') {
+      this.log.warn('Plex service not started: missing plexHost or plexToken.');
+      return;
+    }
+    const host = `http://${domain}:${plexPort}`;
+    this.plexService = new PlexService({
+      host,
+      token: plexToken,
       log: this.log,
+      enableWebhooks: Boolean(this.config.enableWebhooks),
+      webhookPort: typeof this.config.plexWebhookPort === 'number' ? this.config.plexWebhookPort : undefined,
     });
-    this.plexWebhookServer.onPlaybackEvent((event) => {
-      this.handlePlaybackEvent(event);
-    });
-
-    this.plexWebhookServer.start();
-  }
-
-  private stopPlexWebhookListener() {
-    if (!this.plexWebhookServer) {
-      return;
-    }
-
-    this.plexWebhookServer.stop();
-    this.plexWebhookServer = undefined;
-  }
-
-  private handlePlaybackEvent(event: PlaybackState) {
-    for (const playbackAccessory of this.playbackAccessories) {
-      playbackAccessory.handlePlaybackEvent(event);
-    }
   }
 
   discoverDevices() {
@@ -103,6 +87,10 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
     this.discoveredCacheUUIDs.length = 0;
   
     const { plexHost: domain, plexPort, plexToken } = this.config;
+    if (typeof domain !== 'string' || typeof plexToken !== 'string') {
+      this.log.warn('Missing plexHost or plexToken in config.');
+      return;
+    }
     const plexHost = `http://${domain}:${plexPort}`;
     const players = typeof this.config.players === 'object' ? this.config.players : [];
 
@@ -156,6 +144,9 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
         try {
           this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
           this.accessories.delete(uuid);
+          const playbackAccessory = this.playbackAccessories.get(uuid);
+          playbackAccessory?.dispose();
+          this.playbackAccessories.delete(uuid);
         } catch (error) {
           this.log.warn('Failed to unregister stale accessory:', accessory.displayName, error);
         }
@@ -164,7 +155,13 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
   }
 
   private registerPlaybackAccessory(accessory: PlatformAccessory<AccessoryContext>) {
-    const playbackAccessory = new PlaybackSensorAccessory(accessory, this.Characteristic, this.Service, this.log, this.plexTypes);
-    this.playbackAccessories.add(playbackAccessory);
+    if (!this.plexService) {
+      this.log.warn('Skipping playback accessory registration: Plex service is not initialized.');
+      return;
+    }
+    const existingPlaybackAccessory = this.playbackAccessories.get(accessory.UUID);
+    existingPlaybackAccessory?.dispose();
+    const playbackAccessory = new PlaybackSensorAccessory(accessory, this.Characteristic, this.Service, this.log, this.plexTypes, this.plexService);
+    this.playbackAccessories.set(accessory.UUID, playbackAccessory);
   }
 }

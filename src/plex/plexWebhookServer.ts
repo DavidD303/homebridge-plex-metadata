@@ -3,7 +3,8 @@ import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import { EventEmitter } from 'node:events';
 import { networkInterfaces } from 'node:os';
 import asyncBusboy from 'async-busboy';
-import type { PlaybackState, PlexWebhookPayload } from './plexTypes.js';
+import type { PlaybackState, PlexWebhookPlaybackEvent } from './plexService.types.js';
+import type { PlexWebhookPayload } from './plexTypes.js';
 
 type Log = {
   info: (message: string, ...parameters: unknown[]) => void;
@@ -58,7 +59,7 @@ export class PlexWebhookServer extends EventEmitter {
     this.server = undefined;
   }
 
-  onPlaybackEvent(listener: (event: PlaybackState) => void) {
+  onPlaybackEvent(listener: (event: PlexWebhookPlaybackEvent) => void) {
     this.on('playback', listener);
   }
 
@@ -82,7 +83,10 @@ export class PlexWebhookServer extends EventEmitter {
       const payload = JSON.parse(fields.payload as string) as PlexWebhookPayload;
       this.log.info('payload ->', payload.Player?.uuid ?? 'No uuid', payload.event);
      
-      this.emit('playback', this.mapPlaybackState(payload));
+      const playbackEvent = this.mapPlaybackState(payload);
+      if (playbackEvent) {
+        this.emit('playback', playbackEvent);
+      }
       
       res.statusCode = 202;
       res.end('Accepted');
@@ -93,7 +97,18 @@ export class PlexWebhookServer extends EventEmitter {
     }
   }
 
-  private mapPlaybackState(payload: PlexWebhookPayload): PlaybackState | undefined {
+  private mapPlaybackState(payload: PlexWebhookPayload): PlexWebhookPlaybackEvent | undefined {
+    const state = this.mapPlaybackStateValue(payload);
+    if (!state) {
+      return;
+    }
+    return {
+      state,
+      playerUuid: payload.Player?.uuid,
+    };
+  }
+
+  private mapPlaybackStateValue(payload: PlexWebhookPayload): PlaybackState | undefined {
     if (payload.event === 'media.resume') {
       return 'playing'; 
     }

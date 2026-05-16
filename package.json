@@ -1,8 +1,16 @@
 {
   "name": "homebridge-plex-metadata",
-  "version": "0.5.2",
+  "version": "0.5.3",
+  "description": "Homebridge plugin exposing Plex playback metadata for automation.",
   "main": "dist/index.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidmuzi/homebridge-plex-metadata.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidmuzi/homebridge-plex-metadata/issues"
+  },
   "type": "module",
   "keywords": [
     "homebridge-plugin"
@@ -14,7 +22,7 @@
     "watch": "yarn build && yarn link && nodemon"
   },
   "engines": {
-    "homebridge": "^1.8.0 || ^2.0.0-beta.0",
+    "homebridge": "^1.8.0 || ^2.0.0",
     "node": "^22 || ^24"
   },
   "dependencies": {

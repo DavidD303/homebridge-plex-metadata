@@ -71,6 +71,3 @@ export type PlexWebhookPlayer = {
   title?: string;
   uuid?: string;
 };
-
-export type PlaybackState = 'playing' | 'paused' | 'stopped';
-
