@@ -1,6 +1,6 @@
 {
   "name": "homebridge-plex-metadata",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Homebridge plugin exposing Plex playback metadata for automation.",
   "main": "dist/index.js",
   "license": "MIT",
@@ -11,9 +11,14 @@
   "bugs": {
     "url": "https://github.com/davidmuzi/homebridge-plex-metadata/issues"
   },
+  "homepage": "https://github.com/davidmuzi/homebridge-plex-metadata#readme",
   "type": "module",
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "homebridge",
+    "plex",
+    "metadata",
+    "homekit"
   ],
   "scripts": {
     "build": "rm -rf ./dist && tsc",

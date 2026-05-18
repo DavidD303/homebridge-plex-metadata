@@ -34,9 +34,7 @@ export class PlaybackSensorAccessory {
       accessory.addService(PlaybackMetadata, `${this.accessory.displayName} Playback Metadata`, metadataSubtype);
 
     this.accessory.getService(this.serviceType.AccessoryInformation)!
-      .setCharacteristic(this.characteristicType.Name, this.accessory.displayName)
-      .setCharacteristic(this.characteristicType.SerialNumber, 'my-serial-number');
-
+      .setCharacteristic(this.characteristicType.Name, this.accessory.displayName);
     this.service.getCharacteristic(this.characteristicType.OccupancyDetected)
       .onGet(this.getOn.bind(this));
 

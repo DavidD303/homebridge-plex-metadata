@@ -4,26 +4,34 @@
     "singular": true,
     "schema": {
       "type": "object",
+      "required": [
+        "plexHost",
+        "plexPort",
+        "plexToken",
+        "players"
+      ],
       "properties": {
+        "name": {
+          "title": "Plugin Name",
+          "type": "string",
+          "default": "Plex Sensors"
+        },
         "plexHost": {
           "title": "Plex Host",
           "type": "string",
           "description": "Plex host, e.g. 192.168.1.10",
-          "format": "hostname",
-          "required": true
+          "format": "hostname"
         },
         "plexPort": {
           "title": "Plex Port",
           "type": "number",
           "description": "Plex port, e.g. 32400",
-          "default": 32400,
-          "required": true
+          "default": 32400
         },
         "plexToken": {
           "title": "Plex Token",
           "type": "string",
-          "description": "Plex authentication token",
-          "required": true
+          "description": "Plex authentication token"
         },
         "players": {
           "title": "Players",
