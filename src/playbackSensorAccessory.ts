@@ -49,6 +49,7 @@ export class PlaybackSensorAccessory {
         return;
       }
       this.updateOccupancyState(false, 'player-offline');
+      this.clearMetadataValues();
     };
     this.plexService.on('player:update', this.onPlayerUpdate);
     this.plexService.on('player:offline', this.onPlayerOffline);
@@ -73,7 +74,14 @@ export class PlaybackSensorAccessory {
     const playing = snapshot.state === 'playing';
     this.updateOccupancyState(playing, `service:${snapshot.source}:${snapshot.state}`);
 
-    const { VideoCodec, Resolution, AudioCodec, AspectRatio } = this.plexTypes.Characteristics;
+    const { VideoCodec, Resolution, AudioCodec, AspectRatio, PlaybackStatus } = this.plexTypes.Characteristics;
+    this.metadataService.getCharacteristic(PlaybackStatus).updateValue(snapshot.state);
+
+    if (!playing) {
+      this.clearMetadataValues();
+      return;
+    }
+
     if (snapshot.metadata.aspectRatio) {
       this.metadataService.getCharacteristic(AspectRatio).updateValue(snapshot.metadata.aspectRatio);
     }
@@ -86,6 +94,14 @@ export class PlaybackSensorAccessory {
     if (snapshot.metadata.videoCodec) {
       this.metadataService.getCharacteristic(VideoCodec).updateValue(snapshot.metadata.videoCodec);
     }
+  }
+
+  private clearMetadataValues() {
+    const { VideoCodec, Resolution, AudioCodec, AspectRatio } = this.plexTypes.Characteristics;
+    this.metadataService.getCharacteristic(AspectRatio).updateValue('');
+    this.metadataService.getCharacteristic(AudioCodec).updateValue('');
+    this.metadataService.getCharacteristic(Resolution).updateValue('');
+    this.metadataService.getCharacteristic(VideoCodec).updateValue('');
   }
 
   private updateOccupancyState(detected: boolean, source: string) {

@@ -1,6 +1,6 @@
 {
   "name": "homebridge-plex-metadata",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Homebridge plugin exposing Plex playback metadata for automation.",
   "main": "dist/index.js",
   "license": "MIT",
