@@ -61,8 +61,9 @@ export class PlexApiClient {
     });
 
     if (!response.ok) {
-      const message = await response.text();
-      this.log.error(`Plex request failed (${response.status}): ${message}`);
+      const message = `Plex request failed with HTTP ${response.status} ${response.statusText || 'Unknown Error'}.`;
+      this.log.error(message);
+      throw new Error(message);
     }
 
     const contentType = response.headers.get('content-type') ?? '';

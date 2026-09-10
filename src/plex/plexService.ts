@@ -25,6 +25,7 @@ export class PlexService implements PlexPlayerEventsPort {
   private pollTimer?: NodeJS.Timeout;
   private webhookServer?: PlexWebhookServer;
   private connected = false;
+  private hasConnected = false;
   private polling = false;
   private readonly creditsStartCache = new Map<string, number | null>();
 
@@ -127,6 +128,9 @@ export class PlexService implements PlexPlayerEventsPort {
       this.emit('sessions:update', new Map(this.snapshots));
 
       if (!this.connected) {
+        const status = this.hasConnected ? 'Reconnected to' : 'Connected to';
+        this.options.log.info(`${status} Plex at ${this.options.host}; API authentication confirmed.`);
+        this.hasConnected = true;
         this.connected = true;
         this.emit('connection:status', { status: 'connected', at: now });
       }
