@@ -1,18 +1,22 @@
 {
-  "name": "homebridge-plex-metadata",
-  "version": "0.5.5",
-  "description": "Homebridge plugin exposing Plex playback metadata for automation.",
+  "name": "homebridge-plex-credits",
+  "version": "0.1.0",
+  "description": "Homebridge plugin exposing Plex playback metadata and credits-aware sensors for automation.",
   "main": "dist/index.js",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidmuzi/homebridge-plex-metadata.git"
+    "url": "git+https://github.com/DavidD303/homebridge-plex-metadata.git"
   },
   "bugs": {
-    "url": "https://github.com/davidmuzi/homebridge-plex-metadata/issues"
+    "url": "https://github.com/DavidD303/homebridge-plex-metadata/issues"
   },
-  "homepage": "https://github.com/davidmuzi/homebridge-plex-metadata#readme",
+  "homepage": "https://github.com/DavidD303/homebridge-plex-metadata#readme",
   "type": "module",
+  "files": [
+    "dist",
+    "config.schema.json"
+  ],
   "keywords": [
     "homebridge-plugin",
     "homebridge",
@@ -23,7 +27,7 @@
   "scripts": {
     "build": "rm -rf ./dist && tsc",
     "lint": "eslint . --max-warnings=0",
-    "prepublishOnly": "yarn lint && yarn build",
+    "prepublishOnly": "npm run lint && npm run build",
     "watch": "yarn build && yarn link && nodemon"
   },
   "engines": {

@@ -1,8 +1,20 @@
-# Plex Metadata plugin for Homebridge
+# Plex Credits plugin for Homebridge
 
-[![CI](https://github.com/davidmuzi/homebridge-plex-metadata/actions/workflows/ci.yml/badge.svg)](https://github.com/davidmuzi/homebridge-plex-metadata/actions/workflows/ci.yml)
+[![CI](https://github.com/DavidD303/homebridge-plex-metadata/actions/workflows/ci.yml/badge.svg)](https://github.com/DavidD303/homebridge-plex-metadata/actions/workflows/ci.yml)
 
-Add sensors to monitor playback state while exposing rich metadata on the currently playing media
+Add sensors that monitor Plex playback and can turn off when playback reaches a credits marker, while exposing rich metadata on the currently playing media.
+
+This package is a credits-aware fork of [`homebridge-plex-metadata`](https://github.com/davidmuzi/homebridge-plex-metadata).
+
+## Installation
+
+Search for `homebridge-plex-credits` in the Homebridge UI, or install it from a terminal:
+
+```bash
+npm install -g homebridge-plex-credits
+```
+
+If `homebridge-plex-metadata` is installed, uninstall it before installing this package. Both packages use the same platform alias so existing configuration remains compatible.
 
 ## Why this plugin exists
 
@@ -64,6 +76,12 @@ After restarting Homebridge with webhooks enabled, look for a log line like:
 
 ```text
 Plex webhook listener ready at http://0.0.0.0:32500/plex/webhook
+```
+
+The Plex token is still used for session and marker API requests when webhooks are enabled. A successful request produces a one-time startup message:
+
+```text
+Connected to Plex at http://192.168.1.10:32400; API authentication confirmed.
 ```
 
 Use that URL in Plex webhook settings:
