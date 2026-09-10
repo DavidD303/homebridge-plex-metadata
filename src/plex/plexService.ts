@@ -25,6 +25,8 @@ export class PlexService implements PlexPlayerEventsPort {
   private pollTimer?: NodeJS.Timeout;
   private webhookServer?: PlexWebhookServer;
   private connected = false;
+  private polling = false;
+  private readonly creditsStartCache = new Map<string, number | null>();
 
   constructor(private readonly options: PlexServiceOptions) {
     this.pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
@@ -102,9 +104,13 @@ export class PlexService implements PlexPlayerEventsPort {
   }
 
   private async pollSessions() {
+    if (this.polling) {
+      return;
+    }
+    this.polling = true;
     try {
       const response = await this.apiClient.getSessions();
-      const nextSnapshots = this.buildSnapshots(response.MediaContainer.Metadata ?? []);
+      const nextSnapshots = await this.buildSnapshots(response.MediaContainer.Metadata ?? []);
       const now = Date.now();
 
       for (const [playerId] of this.snapshots) {
@@ -130,10 +136,12 @@ export class PlexService implements PlexPlayerEventsPort {
       const status = this.connected ? 'degraded' : 'disconnected';
       this.connected = false;
       this.emit('connection:status', { status, reason: this.describeError(error), at: now });
+    } finally {
+      this.polling = false;
     }
   }
 
-  private buildSnapshots(sessions: PlexSession[]): Map<PlayerId, PlayerSnapshot> {
+  private async buildSnapshots(sessions: PlexSession[]): Promise<Map<PlayerId, PlayerSnapshot>> {
     const next = new Map<PlayerId, PlayerSnapshot>();
     for (const session of sessions) {
       const playerId = session.Player?.machineIdentifier;
@@ -141,6 +149,9 @@ export class PlexService implements PlexPlayerEventsPort {
         continue;
       }
       const media = session.Media?.[0];
+      const ratingKey = session.ratingKey;
+      const viewOffset = this.toNumber(session.viewOffset);
+      const creditsStartTimeOffset = ratingKey ? await this.getCreditsStartTimeOffset(ratingKey) : undefined;
       const metadata: PlayerMetadata = {
         title: session.title,
         aspectRatio: this.toAspectRatio(media?.width, media?.height),
@@ -155,10 +166,47 @@ export class PlexService implements PlexPlayerEventsPort {
         state: this.toPlaybackState(session.Player?.state),
         updatedAt: Date.now(),
         source: 'poll',
+        ratingKey,
+        viewOffset,
+        creditsStartTimeOffset,
+        creditsStarted: creditsStartTimeOffset !== undefined && viewOffset !== undefined && viewOffset >= creditsStartTimeOffset,
         metadata,
       });
     }
     return next;
+  }
+
+  private async getCreditsStartTimeOffset(ratingKey: string): Promise<number | undefined> {
+    const cached = this.creditsStartCache.get(ratingKey);
+    if (cached !== undefined) {
+      return cached ?? undefined;
+    }
+
+    try {
+      const response = await this.apiClient.getMarkers(ratingKey);
+      const markers = response.MediaContainer.Metadata?.flatMap(item => item.Marker ?? []) ?? [];
+      const starts = markers
+        .filter(marker => marker.type === 'credits')
+        .map(marker => this.toNumber(marker.startTimeOffset))
+        .filter((value): value is number => value !== undefined);
+      const creditsStart = starts.length > 0 ? Math.min(...starts) : null;
+      this.creditsStartCache.set(ratingKey, creditsStart);
+      return creditsStart ?? undefined;
+    } catch (error) {
+      this.options.log.warn(`Unable to read Plex credits markers for ratingKey ${ratingKey}: ${this.describeError(error)}`);
+      return;
+    }
+  }
+
+  private toNumber(value: unknown): number | undefined {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return;
   }
 
   private toPlaybackState(value?: string): PlayerSnapshot['state'] {

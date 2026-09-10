@@ -41,6 +41,8 @@ export type PlexMetadataSummary = {
 
 export type PlexSession = {
   key: string;
+  ratingKey?: string;
+  viewOffset?: number;
   type: string;
   title: string;
   grandparentTitle: string;
@@ -50,6 +52,18 @@ export type PlexSession = {
   Session: PlexSessionRef;
   User: PlexUser;
   [key: string]: unknown;
+};
+
+export type PlexMarker = {
+  type?: string;
+  startTimeOffset?: number;
+  endTimeOffset?: number;
+  final?: boolean | number;
+};
+
+export type PlexMetadataItem = {
+  ratingKey?: string;
+  Marker?: PlexMarker[];
 };
 
 export type PlexWebhookPayload = {

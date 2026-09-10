@@ -1,6 +1,7 @@
 import type {
   PlexApiResponse,
   PlexMediaContainer,
+  PlexMetadataItem,
   PlexRequestOptions,
   PlexSession,
 } from './plexTypes.js';
@@ -36,6 +37,14 @@ export class PlexApiClient {
    */
   async getSessions(): Promise<PlexApiResponse<PlexMediaContainer<PlexSession>>> {
     return this.request<PlexApiResponse<PlexMediaContainer<PlexSession>>>('/status/sessions');
+  }
+
+  /** Returns intro and credits markers detected for one library item. */
+  async getMarkers(ratingKey: string): Promise<PlexApiResponse<PlexMediaContainer<PlexMetadataItem>>> {
+    return this.request<PlexApiResponse<PlexMediaContainer<PlexMetadataItem>>>(
+      `/library/metadata/${encodeURIComponent(ratingKey)}`,
+      { query: { includeMarkers: 1 } },
+    );
   }
 
   async request<T>(path: string, options: PlexRequestOptions = {}): Promise<T> {

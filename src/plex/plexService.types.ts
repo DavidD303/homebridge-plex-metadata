@@ -17,6 +17,10 @@ export type PlayerSnapshot = {
   state: 'playing' | 'paused' | 'stopped' | 'idle';
   updatedAt: number;
   source: 'poll' | 'webhook';
+  ratingKey?: string;
+  viewOffset?: number;
+  creditsStartTimeOffset?: number;
+  creditsStarted: boolean;
   metadata: PlayerMetadata;
 };
 
