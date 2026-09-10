@@ -6,6 +6,8 @@ export type AccessoryContext = {
   plexHost: string;
   plexToken: string;
   playerUuid: string;
+  stopAtCredits?: boolean;
+  creditsOffsetSeconds?: number;
 };
 
 export class PlaybackSensorAccessory {
@@ -72,7 +74,12 @@ export class PlaybackSensorAccessory {
 
   private applySnapshot(snapshot: PlayerSnapshot) {
     const playing = snapshot.state === 'playing';
-    this.updateOccupancyState(playing, `service:${snapshot.source}:${snapshot.state}`);
+    const offsetMs = (this.accessory.context.creditsOffsetSeconds ?? 0) * 1000;
+    const creditsReached = this.accessory.context.stopAtCredits === true &&
+      snapshot.creditsStartTimeOffset !== undefined &&
+      snapshot.viewOffset !== undefined &&
+      snapshot.viewOffset >= snapshot.creditsStartTimeOffset + offsetMs;
+    this.updateOccupancyState(playing && !creditsReached, `service:${snapshot.source}:${snapshot.state}${creditsReached ? ':credits' : ''}`);
 
     const { VideoCodec, Resolution, AudioCodec, AspectRatio, PlaybackStatus } = this.plexTypes.Characteristics;
     this.metadataService.getCharacteristic(PlaybackStatus).updateValue(snapshot.state);

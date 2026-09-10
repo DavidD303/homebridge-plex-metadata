@@ -73,12 +73,18 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
       return;
     }
     const host = `http://${domain}:${plexPort}`;
+    const players = Array.isArray(this.config.players) ? this.config.players : [];
+    const creditsEnabled = players.some(player => player?.stopAtCredits === true);
+    const pollIntervalSeconds = typeof this.config.pollIntervalSeconds === 'number'
+      ? this.config.pollIntervalSeconds
+      : creditsEnabled ? 5 : 30;
     this.plexService = new PlexService({
       host,
       token: plexToken,
       log: this.log,
       enableWebhooks: Boolean(this.config.enableWebhooks),
       webhookPort: typeof this.config.plexWebhookPort === 'number' ? this.config.plexWebhookPort : undefined,
+      pollIntervalMs: pollIntervalSeconds * 1000,
     });
   }
 
@@ -94,8 +100,8 @@ export class PlexSensorPlatform implements DynamicPlatformPlugin {
     const plexHost = `http://${domain}:${plexPort}`;
     const players = typeof this.config.players === 'object' ? this.config.players : [];
 
-    for (const { name, uuid } of players) {
-      const playbackContext: AccessoryContext = { plexHost, plexToken, playerUuid: uuid };
+    for (const { name, uuid, stopAtCredits, creditsOffsetSeconds } of players) {
+      const playbackContext: AccessoryContext = { plexHost, plexToken, playerUuid: uuid, stopAtCredits, creditsOffsetSeconds };
       this.addAccessory(playbackContext, name);
     }
 
