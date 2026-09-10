@@ -35,6 +35,12 @@ This plugin leverages both webhooks (optional) and the /sessions API. Webhooks p
    - Add each player under `players` with:
      - `name`: the Homebridge accessory name you want to display
      - `uuid`: player identifier value (machine identifier)
+     - `stopAtCredits` (optional): turn the occupancy sensor off at the first detected credits marker
+     - `creditsOffsetSeconds` (optional): adjust the trigger relative to the marker; negative values trigger early
+
+Set `pollIntervalSeconds` to control playback-position accuracy. A value of `5` is recommended for credits detection.
+
+When `stopAtCredits` is enabled, the existing occupancy sensor remains on during active playback and turns off when playback reaches the first credits marker. It resets automatically when playback stops, a different item starts, or playback seeks back before the credits. Plex must have generated credits markers for the item.
 
 4. Get player identifiers from Homebridge logs while media is playing:
 

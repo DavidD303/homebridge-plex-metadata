@@ -47,9 +47,31 @@
                   "uuid": {
                       "title": "Player UUID",
                       "type": "string"      
+                  },
+                  "stopAtCredits": {
+                      "title": "Turn Sensor Off At Credits",
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Turn the player's occupancy sensor off when playback reaches the first detected credits marker."
+                  },
+                  "creditsOffsetSeconds": {
+                      "title": "Credits Offset (seconds)",
+                      "type": "number",
+                      "default": 0,
+                      "description": "Adjust when the sensor turns off. Use a negative value to trigger before credits and a positive value to trigger after credits begin.",
+                      "condition": {
+                          "functionBody": "return model.players && model.players[arrayIndices[0]] && model.players[arrayIndices[0]].stopAtCredits === true;"
+                      }
                   }
               }
           }
+        },
+        "pollIntervalSeconds": {
+          "title": "Polling Interval (seconds)",
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "description": "How often to update playback position. Five seconds is recommended when using credits detection."
         },
       "enableWebhooks": {
           "title": "Enable Webhooks",
